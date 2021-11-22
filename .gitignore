@@ -1,5 +1,4 @@
 .idea
 .vscode
-allCode.py
 __pycache__
-
+data/*
