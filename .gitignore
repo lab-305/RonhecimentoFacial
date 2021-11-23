@@ -1,4 +1,16 @@
+# IDEs folders
 .idea
 .vscode
 __pycache__
-data/*
+
+# data folders
+data/anchor/*
+data/negative/*
+data/positive/*
+
+application_data/input_image/*
+application_data/verification_images/*
+
+# generated files after compilation
+training_checkpoints/
+siamesemodel.h5
