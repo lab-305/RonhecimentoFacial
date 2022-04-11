@@ -1,52 +1,14 @@
-# import frame_convert2
-# import freenec
-import cv2
-
-import os
-import random
-import numpy as np
-from matplotlib import pyplot as plt
-import uuid
-
 import tensorflow as tf
-from tensorflow._api.v2 import data
+import os
+from matplotlib import pyplot as plt
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Conv2D, Dense, MaxPool2D, Input, Flatten
 from tensorflow.keras.metrics import Precision, Recall
-from tensorflow.python.ops.gen_array_ops import shape
 
-# folders
-# print('configuring folders path...')
 POS_PATH = os.path.join('data', 'positive')
 NEG_PATH = os.path.join('data', 'negative')
 ANC_PATH = os.path.join('data', 'anchor')
 
-#       2 - Colecting and saving data/images
-def registration():
-    cap = cv2.VideoCapture(0)
-
-    while cap.isOpened():
-        ret, frame = cap.read()
-
-        frame = frame[120:120+250, 200:200+250, :]
-
-        if cv2.waitKey(1) & 0XFF == ord('a'):
-            imgname = os.path.join(ANC_PATH, '{}.jpg'.format(uuid.uuid1()))
-            cv2.imwrite(imgname, frame)
-        
-        if cv2.waitKey(1) & 0XFF == ord('p'):
-            imgname = os.path.join(POS_PATH, '{}.jpg'.format(uuid.uuid1()))
-            cv2.imwrite(imgname, frame)
-        
-        cv2.imshow('Image Collection', frame)
-
-        if cv2.waitKey(1) & 0XFF == ord('q'):
-            break
-    
-    cap.release()
-    cv2.destroyAllWindows()
-
-# registration()
 
 #       3 - Load and Preprocess images
 
@@ -293,8 +255,8 @@ plt.subplot(1, 2, 2)
 #       7 - Save  model
 
 # Save weights
-# print('Save weights...')
-siamese_model.save('siamesemodel.h5')
+def save_weights():
+    siamese_model.save('siamesemodel.h5')
 
 # L1Dist
 
@@ -305,103 +267,3 @@ model = tf.keras.models.load_model('siamesemodel.h5', custom_objects={'L1Dist': 
 # Make predictions with reloaded model
 model.predict([test_input, test_val])
 # print('model.summary ', model.summary())
-
-#       8 - Verification  function
-
-def verify(model, detection_thresold, verification_thresold):
-    # print('Verification function...')
-
-    # results array
-    results = []
-    for image in os.listdir(os.path.join('application_data', 'verification_images')):
-        input_img = preprocess(os.path.join('application_data', 'input_image', 'input_image.jpg'))
-        validation_img = preprocess(os.path.join('application_data','verification_images', image))
-
-        # Make Predictions
-        result = model.predict(list(np.expand_dims([input_img, validation_img], axis=1)))
-        results.append(result)
-
-    # Detection threshold: Metric aboce wich a prediction is considered positive
-    detection = np.sum(np.array(results) > detection_thresold)
-
-    # verification threshold: Proportion of positive predictions / total positive samples
-    verification = detection / len(os.listdir(os.path.join('application_data', 'verification_images')))
-    verified = verification > verification_thresold
-
-    return results, verified
-
-# real time verification with OpenCV
-def real_time_verification():
-    # print('real time verification...')
-    cap = cv2.VideoCapture(0)
-
-    while cap.isOpened():
-        ret, frame = cap.read()
-        frame = frame[120:120+250, 200:200+250, :]
-
-        cv2.imshow('Verification', frame)
-
-        # verification trigger
-        if cv2.waitKey(10) & 0xFF == ord('v'):
-
-            # save input image to application_data/input_input_folder
-            cv2.imwrite(os.path.join('application_data', 'input_image', 'input_image.jpg'), frame)
-
-            # run verification
-            results, verified = verify(model, 0.9, 0.7)
-            print(verified)
-        
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-real_time_verification()
-
-
-
-
-
-
-
-# # genering data set
-# cap = cv2.VideoCapture(0)
-# def generate_dataSet():
-#     face_classifier = cv2.CascadeClassifier("haar_face.xml")
-    
-#     def face_cropped(img):
-#         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#         faces = face_classifier.detectMultiScale(gray, 1.3, 5)
-
-#         if faces is ():
-#             return None
-#         for (x, y, w, h) in faces:
-#             cropped_face = img[y:y + h, x:x + w]
-#         return cropped_face
-
-#     img_id = 0
-#     while True:
-#         # frame = frame_convert2.video_cv(freenect.sync_get_video()[0])  # kinect
-#         frame, n = cap.read();
-        
-#         if face_cropped(frame) is not None:
-#             img_id += 1
-
-#             face = cv2.resize(face_cropped(frame), (200, 200))
-#             face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
-
-#             file_name_path = "data/" + "name." + str(img_id) + ".jpg"
-#             cv2.imwrite(file_name_path, face)
-#             cv2.putText(face, str(img_id), (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
-
-#             cv2.imshow("Cropped_face", face)
-#             if cv2.waitKey(1)==13: # or img_id==100:
-#                 break
-
-#     print("coleção de dados completo!!!")
-
-# # cap.release()
-# # cv2.destroyAllWindows()
-
-# # generate_dataSet()

@@ -1,1 +1,0 @@
-# This document describe step by step how algorithm works
